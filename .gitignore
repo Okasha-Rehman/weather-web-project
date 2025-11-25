@@ -1,0 +1,18 @@
+# Maven
+target/
+settings.xml
+
+# Compiled
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
