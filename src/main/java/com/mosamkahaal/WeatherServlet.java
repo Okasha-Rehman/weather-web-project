@@ -80,6 +80,9 @@ public class WeatherServlet extends HttpServlet {
                 forecast.add(day);
             }
             
+            // Debug log for forecast data
+            System.out.println("Forecast data: " + new Gson().toJson(forecast));
+            
             // Create response JSON
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("city", cityName);
