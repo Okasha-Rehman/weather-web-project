@@ -184,7 +184,7 @@ public class WeatherServlet extends HttpServlet {
     }
     
     // Inner class for weather data
-    class WeatherDay {
+    static class WeatherDay  {
         String date;
         int tempMax;
         int tempMin;
