@@ -18,7 +18,10 @@ phases:
       - echo Build completed on `date`
       - echo Packaging artifacts...
       - mvn package -s settings.xml
+
 artifacts:
   files:
-    - target/*.war
+    - target/weather-web-project.war
+    - appspec.yml
+    - scripts/**/*
   discard-paths: no
