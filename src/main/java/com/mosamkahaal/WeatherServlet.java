@@ -1,6 +1,5 @@
 package com.mosamkahaal;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -16,8 +15,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 
 @WebServlet("/weather")
 public class WeatherServlet extends HttpServlet {
@@ -64,31 +61,39 @@ public class WeatherServlet extends HttpServlet {
             JsonArray weatherCodes = daily.getAsJsonArray("weathercode");
             JsonArray precipitation = daily.getAsJsonArray("precipitation_sum");
             
-            List<WeatherDay> forecast = new ArrayList<WeatherDay>();
+            // Build JSON manually - most reliable approach
+            JsonArray forecastArray = new JsonArray();
             
             // Get 7 days forecast
             int days = Math.min(7, dates.size());
             for (int i = 0; i < days; i++) {
-                WeatherDay day = new WeatherDay();
-                day.date = dates.get(i).getAsString();
-                day.tempMax = (int) Math.round(tempMax.get(i).getAsDouble());
-                day.tempMin = (int) Math.round(tempMin.get(i).getAsDouble());
-                day.weatherCode = weatherCodes.get(i).getAsInt();
-                day.precipitation = Math.round(precipitation.get(i).getAsDouble() * 10.0) / 10.0;
-                day.description = getWeatherDescription(day.weatherCode);
-                day.icon = getWeatherIcon(day.weatherCode);
-                forecast.add(day);
+                JsonObject dayObj = new JsonObject();
+                
+                String dateStr = dates.get(i).getAsString();
+                int maxTemp = (int) Math.round(tempMax.get(i).getAsDouble());
+                int minTemp = (int) Math.round(tempMin.get(i).getAsDouble());
+                int weatherCode = weatherCodes.get(i).getAsInt();
+                double precip = Math.round(precipitation.get(i).getAsDouble() * 10.0) / 10.0;
+                String description = getWeatherDescription(weatherCode);
+                String icon = getWeatherIcon(weatherCode);
+                
+                dayObj.addProperty("date", dateStr);
+                dayObj.addProperty("tempMax", maxTemp);
+                dayObj.addProperty("tempMin", minTemp);
+                dayObj.addProperty("weatherCode", weatherCode);
+                dayObj.addProperty("precipitation", precip);
+                dayObj.addProperty("description", description);
+                dayObj.addProperty("icon", icon);
+                
+                forecastArray.add(dayObj);
             }
-            
-            // Debug log for forecast data
-            System.out.println("Forecast data: " + new Gson().toJson(forecast));
             
             // Create response JSON
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("city", cityName);
-            responseJson.add("forecast", new Gson().toJsonTree(forecast));
+            responseJson.add("forecast", forecastArray);
             
-            String jsonResponse = new Gson().toJson(responseJson);
+            String jsonResponse = responseJson.toString();
             System.out.println("Sending response: " + jsonResponse); // Debug log
             
             response.getWriter().write(jsonResponse);
@@ -181,16 +186,5 @@ public class WeatherServlet extends HttpServlet {
         if (code == 95) return "⛈️";
         if (code >= 96 && code <= 99) return "⛈️";
         return "🌡️";
-    }
-    
-    // Inner class for weather data
-    static class WeatherDay  {
-        String date;
-        int tempMax;
-        int tempMin;
-        int weatherCode;
-        double precipitation;
-        String description;
-        String icon;
     }
 }
