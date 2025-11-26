@@ -22,7 +22,6 @@ import java.util.List;
 @WebServlet("/weather")
 public class WeatherServlet extends HttpServlet {
     
-    // Free API key from Open-Meteo (no registration needed)
     private static final String GEOCODING_API = "https://geocoding-api.open-meteo.com/v1/search";
     private static final String WEATHER_API = "https://api.open-meteo.com/v1/forecast";
     
@@ -30,10 +29,12 @@ public class WeatherServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
         String city = request.getParameter("city");
         
         if (city == null || city.trim().isEmpty()) {
-            response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Please enter a city name\"}");
             return;
         }
@@ -42,7 +43,6 @@ public class WeatherServlet extends HttpServlet {
             // Step 1: Get coordinates for the city
             String[] coordinates = getCoordinates(city);
             if (coordinates == null) {
-                response.setContentType("application/json");
                 response.getWriter().write("{\"error\": \"City not found. Please try another city.\"}");
                 return;
             }
@@ -64,17 +64,17 @@ public class WeatherServlet extends HttpServlet {
             JsonArray weatherCodes = daily.getAsJsonArray("weathercode");
             JsonArray precipitation = daily.getAsJsonArray("precipitation_sum");
             
-            List<WeatherDay> forecast = new ArrayList<>();
+            List<WeatherDay> forecast = new ArrayList<WeatherDay>();
             
             // Get 7 days forecast
             int days = Math.min(7, dates.size());
             for (int i = 0; i < days; i++) {
                 WeatherDay day = new WeatherDay();
                 day.date = dates.get(i).getAsString();
-                day.tempMax = tempMax.get(i).getAsDouble();
-                day.tempMin = tempMin.get(i).getAsDouble();
+                day.tempMax = Math.round(tempMax.get(i).getAsDouble());
+                day.tempMin = Math.round(tempMin.get(i).getAsDouble());
                 day.weatherCode = weatherCodes.get(i).getAsInt();
-                day.precipitation = precipitation.get(i).getAsDouble();
+                day.precipitation = Math.round(precipitation.get(i).getAsDouble() * 10.0) / 10.0;
                 day.description = getWeatherDescription(day.weatherCode);
                 day.icon = getWeatherIcon(day.weatherCode);
                 forecast.add(day);
@@ -85,11 +85,13 @@ public class WeatherServlet extends HttpServlet {
             responseJson.addProperty("city", cityName);
             responseJson.add("forecast", new Gson().toJsonTree(forecast));
             
-            response.setContentType("application/json");
-            response.getWriter().write(new Gson().toJson(responseJson));
+            String jsonResponse = new Gson().toJson(responseJson);
+            System.out.println("Sending response: " + jsonResponse); // Debug log
+            
+            response.getWriter().write(jsonResponse);
             
         } catch (Exception e) {
-            response.setContentType("application/json");
+            e.printStackTrace(); // Log the full error
             response.getWriter().write("{\"error\": \"Error fetching weather data: " + e.getMessage() + "\"}");
         }
     }
@@ -98,11 +100,13 @@ public class WeatherServlet extends HttpServlet {
         String urlString = GEOCODING_API + "?name=" + URLEncoder.encode(city, "UTF-8") + "&count=1&language=en&format=json";
         String jsonResponse = makeHttpRequest(urlString);
         
+        System.out.println("Geocoding response: " + jsonResponse); // Debug log
+        
         JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
         if (json.has("results") && json.getAsJsonArray("results").size() > 0) {
             JsonObject result = json.getAsJsonArray("results").get(0).getAsJsonObject();
-            String lat = result.get("latitude").getAsString();
-            String lon = result.get("longitude").getAsString();
+            String lat = String.valueOf(result.get("latitude").getAsDouble());
+            String lon = String.valueOf(result.get("longitude").getAsDouble());
             String name = result.get("name").getAsString();
             return new String[]{lat, lon, name};
         }
@@ -115,13 +119,23 @@ public class WeatherServlet extends HttpServlet {
             "&longitude=" + longitude + 
             "&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum" +
             "&timezone=auto";
-        return makeHttpRequest(urlString);
+        
+        String response = makeHttpRequest(urlString);
+        System.out.println("Weather API response: " + response); // Debug log
+        return response;
     }
     
     private String makeHttpRequest(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+        
+        int responseCode = conn.getResponseCode();
+        if (responseCode != 200) {
+            throw new IOException("HTTP error code: " + responseCode);
+        }
         
         BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         StringBuilder response = new StringBuilder();
