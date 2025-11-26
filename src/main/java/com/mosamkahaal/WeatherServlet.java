@@ -71,8 +71,8 @@ public class WeatherServlet extends HttpServlet {
             for (int i = 0; i < days; i++) {
                 WeatherDay day = new WeatherDay();
                 day.date = dates.get(i).getAsString();
-                day.tempMax = Math.round(tempMax.get(i).getAsDouble());
-                day.tempMin = Math.round(tempMin.get(i).getAsDouble());
+                day.tempMax = (int) Math.round(tempMax.get(i).getAsDouble());
+                day.tempMin = (int) Math.round(tempMin.get(i).getAsDouble());
                 day.weatherCode = weatherCodes.get(i).getAsInt();
                 day.precipitation = Math.round(precipitation.get(i).getAsDouble() * 10.0) / 10.0;
                 day.description = getWeatherDescription(day.weatherCode);
@@ -183,8 +183,8 @@ public class WeatherServlet extends HttpServlet {
     // Inner class for weather data
     class WeatherDay {
         String date;
-        double tempMax;
-        double tempMin;
+        int tempMax;
+        int tempMin;
         int weatherCode;
         double precipitation;
         String description;
