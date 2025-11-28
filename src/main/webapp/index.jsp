@@ -417,13 +417,13 @@
           });
 
           card.innerHTML = `
-                    <div class="day-date">${dayName}<br>${dateStr}</div>
-                    <div class="weather-icon">${day.icon}</div>
-                    <div class="temperature">${Math.round(day.tempMax)}°C</div>
-                    <div class="temp-range">↓ ${Math.round(day.tempMin)}°C</div>
-                    <div class="description">${day.description}</div>
-                    <div class="precipitation">💧 ${day.precipitation}mm</div>
-                `;
+                    <div class="day-date">\${dayName}<br>\${dateStr}</div>
+                   <div class="weather-icon">\${day.icon}</div>
+                   <div class="temperature">\${Math.round(day.tempMax)}°C</div>
+                   <div class="temp-range">↓ \${Math.round(day.tempMin)}°C</div>
+                   <div class="description">\${day.description}</div>
+                   <div class="precipitation">💧 \${day.precipitation}mm</div>
+               `;
 
           grid.appendChild(card);
         });
