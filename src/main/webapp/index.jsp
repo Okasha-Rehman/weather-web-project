@@ -322,7 +322,7 @@
 
     <div class="container">
       <div class="header">
-        <h1 class="brand">MOSAM KA HAAL</h1>
+        <h1 class="brand">Weather Man</h1>
         <p class="brand-urdu">موسم کا حال</p>
       </div>
 
