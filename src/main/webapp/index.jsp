@@ -322,10 +322,8 @@
 
     <div class="container">
       <div class="header">
-        <h1 class="brand">Weather Man</h1>
-        <p class="brand-urdu">
-          آپ کے شہر کا مکمل موسمی جائزہ جامع، معتبر، ہر لمحہ
-        </p>
+        <h1 class="brand">MOSAM KA HAAL</h1>
+        <p class="brand-urdu">موسم کا حال</p>
       </div>
 
       <div class="search-box">
